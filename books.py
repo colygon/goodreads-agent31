@@ -1,4 +1,5 @@
 import urllib.request
+import os
 
 import gender_guesser.detector as gender
 import numpy as np
@@ -10,6 +11,7 @@ import xmltodict
 from pandas import json_normalize
 from streamlit_extras.add_vertical_space import add_vertical_space
 from streamlit_lottie import st_lottie
+from book_agents import get_ai_insights
 
 st.set_page_config(page_title="Goodreads Analysis App", layout="wide")
 
@@ -368,6 +370,60 @@ with row6_2:
     st.markdown(
         "Want to read more books written by women? [Here](https://www.penguin.co.uk/articles/2019/mar/best-books-by-female-authors.html) is a great list from Penguin that should be a good start."
     )
+
+add_vertical_space()
+row6a_spacer1, row6a_1, row6a_spacer2 = st.columns((0.1, 3.2, 0.1))
+
+with row6a_1:
+    st.header("**AI-Powered Reading Insights**")
+    st.markdown(
+        "Using advanced AI agents powered by CrewAI, we've analyzed your reading habits to provide personalized insights and recommendations."
+    )
+
+    # Check if OpenAI API key is available
+    if "OPENAI_API_KEY" in st.secrets or os.getenv("OPENAI_API_KEY"):
+        if "OPENAI_API_KEY" in st.secrets:
+            os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
+
+        # Add a button to generate AI insights
+        if st.button("Generate AI Insights", type="primary"):
+            with st.spinner("Our AI agents are analyzing your reading patterns... This may take a minute."):
+                try:
+                    # Get AI insights
+                    insights = get_ai_insights(df, user_name, analysis_type="comprehensive")
+
+                    # Display Reading Pattern Analysis
+                    st.subheader("Reading Pattern Analysis")
+                    st.markdown(insights['patterns'])
+
+                    add_vertical_space()
+
+                    # Display Genre & Diversity Analysis
+                    st.subheader("Reading Diversity Assessment")
+                    st.markdown(insights['diversity'])
+
+                    add_vertical_space()
+
+                    # Display Personalized Recommendations
+                    st.subheader("Personalized Book Recommendations")
+                    st.markdown(insights['recommendations'])
+
+                    st.success("Analysis complete! Scroll up to see your personalized insights.")
+
+                except Exception as e:
+                    st.error(f"An error occurred while generating AI insights: {str(e)}")
+                    st.info("Please ensure your OpenAI API key is properly configured.")
+    else:
+        st.warning(
+            """AI-powered insights require an OpenAI API key.
+            Please add your OPENAI_API_KEY to Streamlit secrets or environment variables to enable this feature."""
+        )
+        st.info(
+            """The AI agents use CrewAI to provide:
+            - **Reading Pattern Analysis**: Insights into your reading habits and behaviors
+            - **Diversity Assessment**: Evaluation of the breadth of your reading choices
+            - **Personalized Recommendations**: Curated book suggestions based on your preferences"""
+        )
 
 add_vertical_space()
 row7_spacer1, row7_1, row7_spacer2 = st.columns((0.1, 3.2, 0.1))
