@@ -15,29 +15,49 @@ This document describes the CrewAI enhancement to the Goodreads Analysis App. Th
 
 ### AI-Powered Reading Insights
 
-The upgraded application now features three specialized CrewAI agents that work together to analyze your Goodreads reading history and provide intelligent, personalized insights:
+The upgraded application now features three specialized CrewAI agents equipped with the CSVSearchTool that work together to analyze your Goodreads reading history and provide intelligent, personalized insights:
+
+### CSVSearchTool Integration
+
+All agents are now equipped with CrewAI's CSVSearchTool, which enables them to:
+- Query the complete book reading history database (books_read.csv)
+- Search and analyze specific fields like ratings, dates, authors, and book metadata
+- Perform detailed data exploration for more accurate and comprehensive insights
+- Access real-time book data instead of relying solely on pre-computed summaries
 
 #### 1. Reading Pattern Analyst Agent
 - **Role**: Analyzes reading patterns, habits, and trends
+- **Tools**: CSVSearchTool for querying books_read.csv
 - **Capabilities**:
-  - Identifies temporal reading patterns and trends
-  - Analyzes reading speed and volume
-  - Evaluates rating behaviors and preferences
-  - Spots interesting habits in reading behavior
+  - Identifies temporal reading patterns and trends using read_at and started_at fields
+  - Analyzes reading speed and volume through book.num_pages data
+  - Evaluates rating behaviors and preferences from rating field
+  - Spots interesting habits in reading behavior across multiple dimensions
+  - Queries publication years to understand historical reading preferences
 - **Output**: 3-5 key insights about reading behavior and patterns
 
 #### 2. Genre & Diversity Specialist Agent
 - **Role**: Evaluates diversity of reading choices
+- **Tools**: CSVSearchTool for querying books_read.csv
 - **Capabilities**:
-  - Analyzes author demographics (gender, background)
-  - Assesses variety in publication eras and genres
+  - Analyzes author demographics using book.authors.author.name and author_gender fields
+  - Assesses variety in publication eras through book.publication_year data
+  - Identifies author variety and repeat authors via book.authors.author.id
+  - Infers genres and themes from book titles and descriptions
+  - Evaluates popular vs niche choices using book.average_rating
   - Identifies potential blind spots in reading choices
   - Provides thoughtful, non-judgmental feedback
 - **Output**: Diversity assessment with 2-3 specific suggestions for expanding literary horizons
 
 #### 3. Personalized Book Recommender Agent
 - **Role**: Generates tailored book recommendations
+- **Tools**: CSVSearchTool for querying books_read.csv
 - **Capabilities**:
+  - Analyzes highest-rated books using the rating field
+  - Identifies favorite authors from book.authors.author.name
+  - Determines preferred book lengths via book.num_pages
+  - Understands publication year preferences from book.publication_year
+  - Identifies current reading interests through read_at_year patterns
   - Matches reading preferences with new suggestions
   - Considers writing style, themes, pacing, and emotional tone
   - Provides diverse recommendations across genres
@@ -67,6 +87,7 @@ Enhanced with new AI insights section:
 #### `requirements.txt`
 Added CrewAI dependencies:
 - `crewai>=0.86.0` - Multi-agent orchestration framework
+- `crewai-tools>=0.12.0` - CrewAI tools including CSVSearchTool
 - `langchain-openai>=0.3.0` - OpenAI integration for LLM capabilities
 
 ## Setup and Configuration
@@ -127,6 +148,7 @@ streamlit run books.py
 - **Personalized Recommendations**: AI-curated book suggestions
 - **Interactive Analysis**: On-demand generation of insights
 - **Multi-Agent Collaboration**: Three specialized agents working in concert
+- **CSVSearchTool Integration**: Agents can directly query and analyze the complete book database for enhanced accuracy
 
 ## Usage
 
@@ -170,15 +192,35 @@ Analyst    Specialist    Agent
 
 ## Technical Details
 
+### CSVSearchTool Configuration
+- **Tool**: CrewAI's CSVSearchTool
+- **Data Source**: books_read.csv (automatically generated from Goodreads data)
+- **Capabilities**:
+  - Semantic search across all book data fields
+  - Natural language queries for data exploration
+  - Real-time data access for each agent
+  - Supports queries on ratings, dates, authors, titles, publication info, and more
+- **Integration**: All three agents are equipped with the tool for autonomous data exploration
+
+### Available CSV Fields for Agent Queries
+The CSVSearchTool has access to comprehensive book data including:
+- **Book Information**: book.title, book.title_without_series, book.num_pages, book.publication_year
+- **Author Data**: book.authors.author.name, book.authors.author.id, author_gender
+- **Reading Data**: read_at, read_at_year, started_at, rating
+- **Metadata**: book.average_rating, book.ratings_count, book.description
+- **And many more fields** from the Goodreads export
+
 ### LLM Configuration
 - **Default Model**: GPT-4o-mini (configurable)
 - **Temperature**: 0.7 (balanced creativity and consistency)
 - **Framework**: LangChain with OpenAI integration
 
 ### Data Processing
-- Agents receive summarized statistics, not raw data
-- Privacy-conscious: only necessary information is sent to LLM
-- Efficient: reduces token usage while maintaining insight quality
+- Agents receive both summarized statistics and CSV query access
+- CSVSearchTool allows agents to explore specific data points on-demand
+- Privacy-conscious: data remains local, only queries and results sent to LLM
+- Efficient: combines summary statistics with targeted CSV searches
+- Enhanced accuracy: agents can verify insights against actual data
 
 ### Error Handling
 - Graceful degradation if API key is missing
@@ -199,6 +241,8 @@ Potential areas for expansion:
 - Comparative analysis between multiple readers
 - Time-series pattern recognition
 - Integration with more book data sources
+- Additional CrewAI tools (e.g., WebSearchTool for finding new book releases)
+- Custom CSV queries based on user-defined criteria
 
 ## Limitations
 
@@ -235,6 +279,12 @@ For issues or questions:
 - CrewAI framework: https://docs.crewai.com
 
 ## Version History
+
+### v2.1.0 (CSVSearchTool Enhancement)
+- Integrated CSVSearchTool into all three agents
+- Enhanced agent capabilities with direct CSV database querying
+- Improved accuracy of insights through data-driven analysis
+- Updated requirements with crewai-tools>=0.12.0
 
 ### v2.0.0 (CrewAI Upgrade)
 - Added three specialized CrewAI agents
